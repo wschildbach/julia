@@ -1259,3 +1259,7 @@ end
 let (t, e) = intersection_env(Tuple{Union{Int,Int8}}, Tuple{T} where T)
     @test e[1] isa TypeVar
 end
+
+# issue #25430
+@test Vector{Tuple{Any}}() isa Vector{Tuple{>:Int}}
+@test Vector{Tuple{>:Int}}() isa Vector{Tuple{Any}}
