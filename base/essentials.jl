@@ -391,7 +391,7 @@ function precompile(@nospecialize(f), args::Tuple)
     ccall(:jl_compile_hint, Int32, (Any,), Tuple{Core.Typeof(f), args...}) != 0
 end
 
-function precompile(argt::Type)
+function precompile(@nospecialize(argt))
     ccall(:jl_compile_hint, Int32, (Any,), argt) != 0
 end
 
