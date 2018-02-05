@@ -32,7 +32,7 @@ Base.fill
 Base.fill!
 Base.similar(::AbstractArray)
 Base.similar(::Any, ::Tuple)
-Base.linspace
+Base.linrange
 Base.logspace
 ```
 

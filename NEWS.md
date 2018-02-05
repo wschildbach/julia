@@ -975,6 +975,9 @@ Deprecated or removed
   * `linspace` and `logspace` now require an explicit number of elements to be
     supplied rather than defaulting to `50`([#24794], [#24805]).
 
+  * `linspace` and `LinSpace` have been renamed to `linrange` and `LinRange`, respectively
+    ([#TODO]).
+
   * `similar(::Associative)` has been deprecated in favor of `empty(::Associative)`, and
     `similar(::Associative, ::Pair{K, V})` has been deprecated in favour of
     `empty(::Associative, K, V)` ([#24390]).

@@ -312,7 +312,7 @@ end
 ## StepRangeLen
 
 # Use TwicePrecision only for Float64; use Float64 for T<:Union{Float16,Float32}
-# See also _linspace1
+# See also _linrange1
 # Ratio-of-integers constructors
 function steprangelen_hp(::Type{Float64}, ref::Tuple{Integer,Integer},
                          step::Tuple{Integer,Integer}, nb::Integer,
@@ -567,11 +567,11 @@ function +(r1::StepRangeLen{T,R}, r2::StepRangeLen{T,R}) where T where R<:TwiceP
     StepRangeLen{T,typeof(ref),typeof(step)}(ref, step, len, imid)
 end
 
-## LinSpace
+## LinRange
 
-# For Float16, Float32, and Float64, linspace returns a StepRangeLen
-function linspace(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
-    len < 2 && return _linspace1(T, start, stop, len)
+# For Float16, Float32, and Float64, linrange returns a StepRangeLen
+function linrange(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
+    len < 2 && return _linrange1(T, start, stop, len)
     if start == stop
         return steprangelen_hp(T, start, zero(T), 0, len, 1)
     end
@@ -585,14 +585,14 @@ function linspace(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
             start_n = round(Int, den*start)
             stop_n = round(Int, den*stop)
             if T(start_n/den) == start && T(stop_n/den) == stop
-                return linspace(T, start_n, stop_n, len, den)
+                return linrange(T, start_n, stop_n, len, den)
             end
         end
     end
-    _linspace(start, stop, len)
+    _linrange(start, stop, len)
 end
 
-function _linspace(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
+function _linrange(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
     (isfinite(start) && isfinite(stop)) || throw(ArgumentError("start and stop must be finite, got $start and $stop"))
     # Find the index that returns the smallest-magnitude element
     Δ, Δfac = stop-start, 1
@@ -634,10 +634,10 @@ function _linspace(start::T, stop::T, len::Integer) where {T<:IEEEFloat}
     steprangelen_hp(T, (ref, ref_lo), (step_hi, step_lo), 0, Int(len), imin)
 end
 
-# linspace for rational numbers, start = start_n/den, stop = stop_n/den
+# linrange for rational numbers, start = start_n/den, stop = stop_n/den
 # Note this returns a StepRangeLen
-function linspace(::Type{T}, start_n::Integer, stop_n::Integer, len::Integer, den::Integer) where T
-    len < 2 && return _linspace1(T, start_n/den, stop_n/den, len)
+function linrange(::Type{T}, start_n::Integer, stop_n::Integer, len::Integer, den::Integer) where T
+    len < 2 && return _linrange1(T, start_n/den, stop_n/den, len)
     start_n == stop_n && return steprangelen_hp(T, (start_n, den), (zero(start_n), den), 0, len)
     tmin = -start_n/(Float64(stop_n) - Float64(start_n))
     imin = round(Int, tmin*(len-1)+1)
@@ -650,10 +650,10 @@ function linspace(::Type{T}, start_n::Integer, stop_n::Integer, len::Integer, de
 end
 
 # For len < 2
-function _linspace1(::Type{T}, start, stop, len::Integer) where T
-    len >= 0 || throw(ArgumentError("linspace($start, $stop, $len): negative length"))
+function _linrange1(::Type{T}, start, stop, len::Integer) where T
+    len >= 0 || throw(ArgumentError("linrange($start, $stop, $len): negative length"))
     if len <= 1
-        len == 1 && (start == stop || throw(ArgumentError("linspace($start, $stop, $len): endpoints differ")))
+        len == 1 && (start == stop || throw(ArgumentError("linrange($start, $stop, $len): endpoints differ")))
         # Ensure that first(r)==start and last(r)==stop even for len==0
         # The output type must be consistent with steprangelen_hp
         if T<:Union{Float32,Float16}

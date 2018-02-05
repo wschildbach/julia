@@ -896,8 +896,11 @@ end
 @deprecate trues(A::AbstractArray) trues(size(A))
 
 # issue #24794
-@deprecate linspace(start, stop)     linspace(start, stop, 50)
+@deprecate linspace(start, stop)     linrange(start, stop, 50)
 @deprecate logspace(start, stop)     logspace(start, stop, 50)
+
+@deprecate linspace linrange
+@deprecate_binding LinSpace LinRange
 
 @deprecate merge!(repo::LibGit2.GitRepo, args...; kwargs...) LibGit2.merge!(repo, args...; kwargs...)
 @deprecate push!(w::LibGit2.GitRevWalker, arg) LibGit2.push!(w, arg)

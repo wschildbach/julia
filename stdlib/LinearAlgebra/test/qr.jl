@@ -211,7 +211,7 @@ end
 
 @testset "Issue 24107" begin
     A = rand(200,2)
-    @test A \ linspace(0,1,200) == A \ Vector(linspace(0,1,200))
+    @test A \ linrange(0,1,200) == A \ Vector(linrange(0,1,200))
 end
 
 @testset "Issue 24589. Promotion of rational matrices" begin
