@@ -978,6 +978,8 @@ Deprecated or removed
   * `linspace` and `LinSpace` have been renamed to `linrange` and `LinRange`, respectively
     ([#TODO]).
 
+  * `logspace` has been renamed to `logrange` ([#TODO]).
+
   * `similar(::Associative)` has been deprecated in favor of `empty(::Associative)`, and
     `similar(::Associative, ::Pair{K, V})` has been deprecated in favour of
     `empty(::Associative, K, V)` ([#24390]).

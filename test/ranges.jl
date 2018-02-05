@@ -1210,14 +1210,14 @@ end
     @test Float32(linsp.ref) ≈ linsp.ref.hi + linsp.ref.lo
 end
 
-@testset "logspace" begin
+@testset "logrange" begin
     n = 10; a = 2; b = 4
     # test default values; base = 10
-    @test logspace(a, b, 50) == 10 .^ linrange(a, b, 50)
-    @test logspace(a, b, n) == 10 .^ linrange(a, b, n)
+    @test logrange(a, b, 50) == 10 .^ linrange(a, b, 50)
+    @test logrange(a, b, n) == 10 .^ linrange(a, b, n)
     for base in (10, 2, ℯ)
-        @test logspace(a, b, 50, base=base) == base.^linrange(a, b, 50)
-        @test logspace(a, b, n, base=base) == base.^linrange(a, b, n)
+        @test logrange(a, b, 50, base=base) == base.^linrange(a, b, 50)
+        @test logrange(a, b, n, base=base) == base.^linrange(a, b, n)
     end
 end
 

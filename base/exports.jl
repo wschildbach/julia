@@ -401,7 +401,7 @@ export
     last,
     linearindices,
     linrange,
-    logspace,
+    logrange,
     mapslices,
     max,
     maximum!,

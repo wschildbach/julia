@@ -585,7 +585,7 @@ tpara18457(::Type{A}) where {A<:AbstractMyType18457} = tpara18457(supertype(A))
 
     function FOO_19322(Y::AbstractMatrix; frac::Float64=0.3, nbins::Int=100, n_sims::Int=100)
         num_iters, num_chains = size(Y)
-        start_iters = unique([1; [round(Int64, s) for s in logspace(log(10,100),
+        start_iters = unique([1; [round(Int64, s) for s in logrange(log(10,100),
                                                                     log(10,num_iters/2),nbins-1)]])
         result = zeros(Float64, 10, length(start_iters) * num_chains)
         j=1
