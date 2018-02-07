@@ -342,7 +342,6 @@ function randn end
 
 # I/O
 include("stream.jl")
-include("socket.jl")
 include("filesystem.jl")
 using .Filesystem
 include("process.jl")
@@ -501,6 +500,7 @@ Base.require(Base, :Base64)
 Base.require(Base, :CRC32c)
 Base.require(Base, :SHA)
 Base.require(Base, :Dates)
+Base.require(Base, :Sockets)
 Base.require(Base, :DelimitedFiles)
 Base.require(Base, :Serialization)
 Base.require(Base, :Distributed)
@@ -855,6 +855,27 @@ Base.require(Base, :Markdown)
     @eval @deprecate_stdlib $(Symbol("@code_lowered"))  InteractiveUtils true
     @eval @deprecate_stdlib $(Symbol("@code_llvm"))     InteractiveUtils true
     @eval @deprecate_stdlib $(Symbol("@code_native"))   InteractiveUtils true
+
+    @eval @deprecate_stdlib $(Symbol("@ip_str")) Sockets true
+    @deprecate_stdlib IPAddr         Sockets true
+    @deprecate_stdlib IPv4           Sockets true
+    @deprecate_stdlib IPv6           Sockets true
+    @deprecate_stdlib accept         Sockets true
+    @deprecate_stdlib connect        Sockets true
+    @deprecate_stdlib getaddrinfo    Sockets true
+    @deprecate_stdlib getalladdrinfo Sockets true
+    @deprecate_stdlib getnameinfo    Sockets true
+    @deprecate_stdlib getipaddr      Sockets true
+    @deprecate_stdlib getpeername    Sockets true
+    @deprecate_stdlib getsockname    Sockets true
+    @deprecate_stdlib listen         Sockets true
+    @deprecate_stdlib listenany      Sockets true
+    @deprecate_stdlib recv           Sockets true
+    @deprecate_stdlib recvfrom       Sockets true
+    @deprecate_stdlib send           Sockets true
+    @deprecate_stdlib TCPSocket      Sockets true
+    @deprecate_stdlib UDPSocket      Sockets true
+
 end
 
 empty!(DEPOT_PATH)

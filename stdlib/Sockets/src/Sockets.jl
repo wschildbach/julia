@@ -1,5 +1,42 @@
 # This file is a part of Julia. License is MIT: https://julialang.org/license
 
+module Sockets
+
+export
+    accept,
+    bind,
+    connect,
+    getaddrinfo,
+    getalladdrinfo,
+    getnameinfo,
+    getipaddr,
+    getpeername,
+    getsockname,
+    listen,
+    listenany,
+    recv,
+    recvfrom,
+    send,
+    TCPSocket,
+    UDPSocket,
+    @ip_str,
+    IPAddr,
+    IPv4,
+    IPv6
+
+import Base: isless, show, print, parse, bind, convert, isreadable, iswritable, alloc_buf_hook, _uv_hook_close
+
+using Base: LibuvStream, LibuvServer, PipeEndpoint, @handle_as, uv_error, associate_julia_struct, uvfinalize,
+    notify_error, stream_wait, uv_req_data, uv_req_set_data, preserve_handle, unpreserve_handle, UVError,
+    eventloop, StatusUninit, StatusInit, StatusConnecting, StatusOpen, StatusClosing, StatusClosed, StatusActive,
+    uv_status_string, check_open, wait_connected,
+    UV_EINVAL, UV_ENOMEM, UV_ENOBUFS, UV_EAGAIN, UV_ECONNABORTED, UV_EADDRINUSE, UV_EACCES, UV_EADDRNOTAVAIL,
+    UV_EAI_ADDRFAMILY, UV_EAI_AGAIN, UV_EAI_BADFLAGS,
+    UV_EAI_BADHINTS, UV_EAI_CANCELED, UV_EAI_FAIL,
+    UV_EAI_FAMILY, UV_EAI_NODATA, UV_EAI_NONAME,
+    UV_EAI_OVERFLOW, UV_EAI_PROTOCOL, UV_EAI_SERVICE,
+    UV_EAI_SOCKTYPE, UV_EAI_MEMORY
+
 ## IP ADDRESS HANDLING ##
 abstract type IPAddr end
 
@@ -282,7 +319,7 @@ mutable struct TCPSocket <: LibuvStream
                 Condition(),
                 nothing,
                 ReentrantLock(),
-                DEFAULT_READ_BUFFER_SZ)
+                Base.DEFAULT_READ_BUFFER_SZ)
         associate_julia_struct(tcp.handle, tcp)
         finalizer(uvfinalize, tcp)
         return tcp
@@ -291,7 +328,7 @@ end
 
 # kw arg "delay": if true, libuv delays creation of the socket fd till the first bind call
 function TCPSocket(; delay=true)
-    tcp = TCPSocket(Libc.malloc(_sizeof_uv_tcp), StatusUninit)
+    tcp = TCPSocket(Libc.malloc(Base._sizeof_uv_tcp), StatusUninit)
     af_spec = delay ? 0 : 2   # AF_UNSPEC is 0, AF_INET is 2
     err = ccall(:uv_tcp_init_ex, Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cuint),
                 eventloop(), tcp.handle, af_spec)
@@ -322,7 +359,7 @@ end
 # It can be set to false if there is a need to set socket options before
 # further calls to `bind` and `listen`, e.g. `SO_REUSEPORT`.
 function TCPServer(; delay=true)
-    tcp = TCPServer(Libc.malloc(_sizeof_uv_tcp), StatusUninit)
+    tcp = TCPServer(Libc.malloc(Base._sizeof_uv_tcp), StatusUninit)
     af_spec = delay ? 0 : 2   # AF_UNSPEC is 0, AF_INET is 2
     err = ccall(:uv_tcp_init_ex, Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cuint),
                 eventloop(), tcp.handle, af_spec)
@@ -337,7 +374,7 @@ iswritable(io::TCPSocket) = isopen(io) && io.status != StatusClosing
 ## VARIOUS METHODS TO BE MOVED TO BETTER LOCATION
 
 _jl_connect_raw(sock::TCPSocket, sockaddr::Ptr{Cvoid}) =
-    ccall(:jl_connect_raw, Int32, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), sock.handle, sockaddr, uv_jl_connectcb::Ptr{Cvoid})
+    ccall(:jl_connect_raw, Int32, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), sock.handle, sockaddr, Base.uv_jl_connectcb::Ptr{Cvoid})
 _jl_sockaddr_from_addrinfo(addrinfo::Ptr{Cvoid}) =
     ccall(:jl_sockaddr_from_addrinfo, Ptr{Cvoid}, (Ptr{Cvoid},), addrinfo)
 _jl_sockaddr_set_port(ptr::Ptr{Cvoid}, port::UInt16) =
@@ -351,7 +388,6 @@ uninitialized client stream may be provided, in which case it will be used inste
 creating a new stream.
 """
 accept(server::TCPServer) = accept(server, TCPSocket())
-accept(server::PipeServer) = accept(server, PipeEndpoint())
 
 # UDP
 """
@@ -380,7 +416,7 @@ mutable struct UDPSocket <: LibuvStream
     end
 end
 function UDPSocket()
-    this = UDPSocket(Libc.malloc(_sizeof_uv_udp), StatusUninit)
+    this = UDPSocket(Libc.malloc(Base._sizeof_uv_udp), StatusUninit)
     err = ccall(:uv_udp_init, Cint, (Ptr{Cvoid}, Ptr{Cvoid}),
                 eventloop(), this.handle)
     uv_error("failed to create udp socket", err)
@@ -517,7 +553,7 @@ function recvfrom(sock::UDPSocket)
     end
     if ccall(:uv_is_active, Cint, (Ptr{Cvoid},), sock.handle) == 0
         uv_error("recv_start", ccall(:uv_udp_recv_start, Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
-                                    sock.handle, uv_jl_alloc_buf::Ptr{Cvoid}, uv_jl_recvcb::Ptr{Cvoid}))
+                                    sock.handle, Base.uv_jl_alloc_buf::Ptr{Cvoid}, uv_jl_recvcb::Ptr{Cvoid}))
     end
     sock.status = StatusActive
     return stream_wait(sock, sock.recvnotify)::Tuple{Union{IPv4, IPv6}, Vector{UInt8}}
@@ -642,7 +678,7 @@ Uses the operating system's underlying getaddrinfo implementation, which may do 
 """
 function getalladdrinfo(host::String)
     isascii(host) || error("non-ASCII hostname: $host")
-    req = Libc.malloc(_sizeof_uv_getaddrinfo)
+    req = Libc.malloc(Base._sizeof_uv_getaddrinfo)
     uv_req_set_data(req, C_NULL) # in case we get interrupted before arriving at the wait call
     status = ccall(:jl_getaddrinfo, Int32, (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}),
                    eventloop(), req, host, #=service=#C_NULL, uv_jl_getaddrinfocb::Ptr{Cvoid})
@@ -732,7 +768,7 @@ Performs a reverse-lookup for IP address to return a hostname and service
 using the operating system's underlying getnameinfo implementation.
 """
 function getnameinfo(address::Union{IPv4, IPv6})
-    req = Libc.malloc(_sizeof_uv_getnameinfo)
+    req = Libc.malloc(Base._sizeof_uv_getnameinfo)
     uv_req_set_data(req, C_NULL) # in case we get interrupted before arriving at the wait call
     ev = eventloop()
     port = hton(UInt16(0))
@@ -836,7 +872,7 @@ function connect!(sock::TCPSocket, host::IPv4, port::Integer)
         throw(ArgumentError("port out of range, must be 0 ≤ port ≤ 65535, got $port"))
     end
     uv_error("connect", ccall(:jl_tcp4_connect, Int32, (Ptr{Cvoid}, UInt32, UInt16, Ptr{Cvoid}),
-                             sock.handle, hton(host.host), hton(UInt16(port)), uv_jl_connectcb::Ptr{Cvoid}))
+                             sock.handle, hton(host.host), hton(UInt16(port)), Base.uv_jl_connectcb::Ptr{Cvoid}))
     sock.status = StatusConnecting
     nothing
 end
@@ -849,7 +885,7 @@ function connect!(sock::TCPSocket, host::IPv6, port::Integer)
         throw(ArgumentError("port out of range, must be 0 ≤ port ≤ 65535, got $port"))
     end
     uv_error("connect", ccall(:jl_tcp6_connect, Int32, (Ptr{Cvoid}, Ref{UInt128}, UInt16, Ptr{Cvoid}),
-                              sock.handle, hton(host.host), hton(UInt16(port)), uv_jl_connectcb::Ptr{Cvoid}))
+                              sock.handle, hton(host.host), hton(UInt16(port)), Base.uv_jl_connectcb::Ptr{Cvoid}))
     sock.status = StatusConnecting
     nothing
 end
@@ -870,8 +906,6 @@ connect(port::Integer) = connect(localhost, port)
 connect(host::AbstractString, port::Integer) = connect(TCPSocket(), host, port)
 connect(addr::IPAddr, port::Integer) = connect(TCPSocket(), addr, port)
 connect(addr::InetAddr) = connect(TCPSocket(), addr)
-
-default_connectcb(sock, status) = nothing
 
 function connect!(sock::TCPSocket, host::AbstractString, port::Integer)
     if sock.status != StatusInit
@@ -1032,4 +1066,32 @@ function _sockname(sock, self=true)
         error("cannot obtain socket name")
     end
     return addr, port
+end
+
+# domain sockets
+
+include("PipeServer.jl")
+
+# libuv callback handles
+
+function __init__()
+    global uv_jl_getaddrinfocb = cfunction(uv_getaddrinfocb, Cvoid, Tuple{Ptr{Cvoid}, Cint, Ptr{Cvoid}})
+    global uv_jl_getnameinfocb = cfunction(uv_getnameinfocb, Cvoid, Tuple{Ptr{Cvoid}, Cint, Cstring, Cstring})
+    global uv_jl_recvcb        = cfunction(uv_recvcb, Cvoid, Tuple{Ptr{Cvoid}, Cssize_t, Ptr{Cvoid}, Ptr{Cvoid}, Cuint})
+    global uv_jl_sendcb        = cfunction(uv_sendcb, Cvoid, Tuple{Ptr{Cvoid}, Cint})
+end
+
+# deprecations
+
+@deprecate convert(dt::Type{<:Integer}, ip::IPAddr)  dt(ip)
+
+@noinline function getaddrinfo(callback::Function, host::AbstractString)
+    Base.depwarn("`getaddrinfo` with a callback function is deprecated, wrap code in `@async` instead for deferred execution.", :getaddrinfo)
+    @async begin
+        r = getaddrinfo(host)
+        callback(r)
+    end
+    nothing
+end
+
 end
