@@ -4372,7 +4372,7 @@ end
 @test f16158("abc") == "abcaba"
 
 # LLVM verifier error for noreturn function
-# the `code_llvm(DevNull, ...)` tests are only meaningful on debug build
+# the `code_llvm(DEVNULL, ...)` tests are only meaningful on debug build
 # with verifier on (but should still pass on release build).
 module TestSSA16244
 
@@ -4388,7 +4388,7 @@ function f1(a)
     end
     b[1]
 end
-code_llvm(DevNull, f1, Tuple{Bool})
+code_llvm(DEVNULL, f1, Tuple{Bool})
 @test f1(true) == 2
 @test_throws DivideError f1(false)
 
@@ -4403,7 +4403,7 @@ function f2(a)
     end
     b[1]
 end
-code_llvm(DevNull, f2, Tuple{Bool})
+code_llvm(DEVNULL, f2, Tuple{Bool})
 @test f2(true) == 2
 @test_throws ErrorException f2(false)
 
@@ -4414,7 +4414,7 @@ function f3(a)
     end
     b[1]
 end
-code_llvm(DevNull, f3, Tuple{Bool})
+code_llvm(DEVNULL, f3, Tuple{Bool})
 @test f3(true) == 2
 ex = try
     f3(false)
@@ -4433,7 +4433,7 @@ function f4(a, p)
     end
     b[1]
 end
-code_llvm(DevNull, f4, Tuple{Bool,Ptr{Cvoid}})
+code_llvm(DEVNULL, f4, Tuple{Bool,Ptr{Cvoid}})
 @test f4(true, C_NULL) == 2
 @test_throws UndefRefError f4(false, C_NULL)
 
@@ -4445,7 +4445,7 @@ function f5(a)
     end
     b[1]
 end
-code_llvm(DevNull, f5, Tuple{Bool})
+code_llvm(DEVNULL, f5, Tuple{Bool})
 @test f5(true) == 2
 @test f5(false) == 1
 
@@ -4456,7 +4456,7 @@ function f6(a)
     end
     b[1]
 end
-code_llvm(DevNull, f6, Tuple{Bool})
+code_llvm(DEVNULL, f6, Tuple{Bool})
 @test f6(true) == 2
 @test f6(false) == 1
 
@@ -4469,7 +4469,7 @@ function f7(a)
     end
     b[1]
 end
-code_llvm(DevNull, f7, Tuple{Bool})
+code_llvm(DEVNULL, f7, Tuple{Bool})
 @test f7(true) == 2
 @test_throws TypeError f7(false)
 
@@ -4482,7 +4482,7 @@ function f8(a, c)
     end
     b[1]
 end
-code_llvm(DevNull, f8, Tuple{Bool,Int})
+code_llvm(DEVNULL, f8, Tuple{Bool,Int})
 @test f8(true, 1) == 2
 @test_throws TypeError f8(false, 1)
 
@@ -4496,7 +4496,7 @@ function f9(a)
     end
     b[1]
 end
-code_llvm(DevNull, f9, Tuple{Bool})
+code_llvm(DEVNULL, f9, Tuple{Bool})
 @test f9(true) == 2
 ex = try
     f9(false)

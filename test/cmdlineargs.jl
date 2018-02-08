@@ -436,11 +436,11 @@ let exename = `$(Base.julia_cmd()) --sysimage-native-code=yes`
 end
 
 # Make sure `julia --lisp` doesn't break
-run(pipeline(DevNull, `$(joinpath(Sys.BINDIR, Base.julia_exename())) --lisp`, DevNull))
+run(pipeline(DEVNULL, `$(joinpath(Sys.BINDIR, Base.julia_exename())) --lisp`, DEVNULL))
 
 # Test that `julia [some other option] --lisp` is disallowed
-@test_throws ErrorException run(pipeline(DevNull, pipeline(`$(joinpath(Sys.BINDIR,
-    Base.julia_exename())) -Cnative --lisp`, stderr=DevNull), DevNull))
+@test_throws ErrorException run(pipeline(DEVNULL, pipeline(`$(joinpath(Sys.BINDIR,
+    Base.julia_exename())) -Cnative --lisp`, stderr=DEVNULL), DEVNULL))
 
 # --sysimage-native-code={yes|no}
 let exename = `$(Base.julia_cmd()) --startup-file=no`
